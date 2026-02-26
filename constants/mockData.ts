@@ -1,0 +1,247 @@
+// ========================================
+// GeoAdTech — Mock Project Data
+// ========================================
+import { NotificationItem, Project } from '@/types';
+
+export const MOCK_PROJECTS: Project[] = [
+    {
+        _id: '1',
+        name: 'New Delhi Metro Extension — Phase IV',
+        description:
+            'The Delhi Metro Phase IV project covers 65 km of new corridors connecting underserved areas of the city. This initiative will add 45 new stations, significantly reducing commute times and traffic congestion. The project incorporates solar-powered stations, rainwater harvesting systems, and accessibility features meeting international standards. Expected to benefit over 5 million daily commuters upon completion.',
+        shortDescription: 'Metro extension covering 65 km with 45 new stations.',
+        location: { type: 'Point', coordinates: [77.2090, 28.6139] },
+        geofence: { type: 'circle', radius: 500 },
+        status: 'in-progress',
+        category: 'metro',
+        images: [],
+        impactMetrics: {
+            beneficiaries: 5000000,
+            budget: '₹24,948 Cr',
+            completionPercentage: 42,
+            startDate: '2022-03-15',
+            expectedCompletion: '2028-06-30',
+        },
+        campaign: {
+            text: 'Building the future of urban transit — one station at a time.',
+            aiTone: 'inspirational',
+        },
+        leadership: {
+            name: 'Shri Manoj Joshi',
+            title: 'Secretary, Ministry of Urban Development',
+        },
+        rating: 4.2,
+        totalRatings: 1253,
+        createdAt: '2024-01-10T10:00:00Z',
+        updatedAt: '2025-02-20T14:30:00Z',
+    },
+    {
+        _id: '2',
+        name: 'AIIMS Bilaspur — Super Specialty Hospital',
+        description:
+            'A state-of-the-art 750-bed super specialty hospital under the Pradhan Mantri Swasthya Suraksha Yojana (PMSSY). The facility includes advanced cardiology, oncology, neurosciences, and trauma care departments. Equipped with latest MRI, CT, and robotic surgery units, this hospital will serve the healthcare needs of over 20 million residents across Himachal Pradesh and neighboring states.',
+        shortDescription: 'A 750-bed super specialty hospital under PMSSY.',
+        location: { type: 'Point', coordinates: [76.7606, 31.3260] },
+        geofence: { type: 'circle', radius: 800 },
+        status: 'completed',
+        category: 'hospital',
+        images: [],
+        impactMetrics: {
+            beneficiaries: 20000000,
+            budget: '₹1,470 Cr',
+            completionPercentage: 100,
+            startDate: '2019-10-03',
+            expectedCompletion: '2025-01-15',
+        },
+        campaign: {
+            text: 'World-class healthcare, now closer to home.',
+            aiTone: 'empathetic',
+        },
+        leadership: {
+            name: 'Dr. M. Srinivas',
+            title: 'Director, AIIMS',
+        },
+        rating: 4.7,
+        totalRatings: 892,
+        createdAt: '2023-06-15T08:00:00Z',
+        updatedAt: '2025-01-20T12:00:00Z',
+    },
+    {
+        _id: '3',
+        name: 'Atal Setu — Mumbai Trans Harbour Link',
+        description:
+            'India\'s longest sea bridge at 21.8 km connecting Mumbai to Navi Mumbai. This 6-lane freeway bridge dramatically reduces travel time from 90+ minutes to just 20 minutes. The project features advanced seismic isolation bearings, orthotropic steel deck, and a state-of-the-art traffic management system. Designed to withstand extreme weather and seismic activity.',
+        shortDescription: 'India\'s longest 21.8 km sea bridge connecting Mumbai to Navi Mumbai.',
+        location: { type: 'Point', coordinates: [72.9959, 19.0124] },
+        geofence: { type: 'circle', radius: 1000 },
+        status: 'completed',
+        category: 'bridge',
+        images: [],
+        impactMetrics: {
+            beneficiaries: 7000000,
+            budget: '₹17,843 Cr',
+            completionPercentage: 100,
+            startDate: '2018-04-24',
+            expectedCompletion: '2024-01-12',
+        },
+        campaign: {
+            text: 'Bridging cities, connecting futures.',
+            aiTone: 'bold',
+        },
+        leadership: {
+            name: 'Shri Eknath Shinde',
+            title: 'Chief Minister, Maharashtra',
+        },
+        rating: 4.8,
+        totalRatings: 3420,
+        createdAt: '2023-01-05T09:00:00Z',
+        updatedAt: '2024-01-15T10:00:00Z',
+    },
+    {
+        _id: '4',
+        name: 'IIT Goa — Permanent Campus Construction',
+        description:
+            'Construction of the permanent campus of IIT Goa spread over 300 acres at Melauli-Sanguem. The campus includes academic blocks, hostels, faculty quarters, sports complex, research labs, and a central library. Green building norms with IGBC Platinum certification, solar farm, and zero-waste management system make this a model sustainable institution.',
+        shortDescription: 'Permanent 300-acre campus for IIT Goa with green buildings.',
+        location: { type: 'Point', coordinates: [74.1240, 15.2832] },
+        geofence: { type: 'circle', radius: 600 },
+        status: 'in-progress',
+        category: 'college',
+        images: [],
+        impactMetrics: {
+            beneficiaries: 5000,
+            budget: '₹4,200 Cr',
+            completionPercentage: 35,
+            startDate: '2023-07-01',
+            expectedCompletion: '2027-12-31',
+        },
+        campaign: {
+            text: 'Shaping tomorrow\'s innovators on India\'s most beautiful coast.',
+            aiTone: 'aspirational',
+        },
+        leadership: {
+            name: 'Prof. B.K. Mishra',
+            title: 'Director, IIT Goa',
+        },
+        rating: 4.0,
+        totalRatings: 210,
+        createdAt: '2024-03-01T07:00:00Z',
+        updatedAt: '2025-02-01T09:00:00Z',
+    },
+    {
+        _id: '5',
+        name: 'Dwarka Expressway — NH-248BB',
+        description:
+            'A 29 km, 14-lane access-controlled expressway connecting Dwarka to Gurugram. Features India\'s first 8-lane elevated highway, multiple interchanges, and a cloverleaf junction. The expressway includes dedicated service lanes, noise barriers for residential areas, and advanced drainage systems. Expected to slash travel time from 2 hours to 25 minutes.',
+        shortDescription: '29 km, 14-lane expressway connecting Dwarka to Gurugram.',
+        location: { type: 'Point', coordinates: [77.0266, 28.5702] },
+        geofence: { type: 'circle', radius: 700 },
+        status: 'completed',
+        category: 'road',
+        images: [],
+        impactMetrics: {
+            beneficiaries: 3000000,
+            budget: '₹9,000 Cr',
+            completionPercentage: 100,
+            startDate: '2019-02-15',
+            expectedCompletion: '2024-03-11',
+        },
+        campaign: {
+            text: 'Faster commutes, bigger dreams.',
+            aiTone: 'dynamic',
+        },
+        leadership: {
+            name: 'Shri Nitin Gadkari',
+            title: 'Minister of Road Transport & Highways',
+        },
+        rating: 4.5,
+        totalRatings: 2100,
+        createdAt: '2023-08-10T06:00:00Z',
+        updatedAt: '2024-03-15T11:00:00Z',
+    },
+    {
+        _id: '6',
+        name: 'New Parliament Building — Central Vista',
+        description:
+            'The new Parliament building, inaugurated as Sansad Bhavan, is a state-of-the-art triangular structure spanning 65,000 sq m. It features the world\'s largest legislative chamber seating 1,272 MPs, a constitutional gallery, and earthquake-resistant platinum-rated green building design with advanced digital infrastructure for paperless governance.',
+        shortDescription: 'New Parliament building with 1,272-seat legislative chamber.',
+        location: { type: 'Point', coordinates: [77.2085, 28.6173] },
+        geofence: { type: 'circle', radius: 400 },
+        status: 'completed',
+        category: 'government',
+        images: [],
+        impactMetrics: {
+            beneficiaries: 1400000000,
+            budget: '₹971 Cr',
+            completionPercentage: 100,
+            startDate: '2021-01-10',
+            expectedCompletion: '2023-05-28',
+        },
+        campaign: {
+            text: 'A new temple of democracy for a new India.',
+            aiTone: 'patriotic',
+        },
+        leadership: {
+            name: 'Shri Narendra Modi',
+            title: 'Prime Minister of India',
+        },
+        rating: 4.9,
+        totalRatings: 5800,
+        createdAt: '2023-05-28T10:00:00Z',
+        updatedAt: '2024-08-15T08:00:00Z',
+    },
+];
+
+export const MOCK_NOTIFICATIONS: NotificationItem[] = [
+    {
+        id: 'n1',
+        projectId: '1',
+        projectName: 'New Delhi Metro Extension — Phase IV',
+        title: '🚇 You\'re near the Delhi Metro expansion!',
+        body: 'Phase IV work is 42% complete. 45 new stations are being built to transform your daily commute.',
+        category: 'metro',
+        timestamp: '2025-02-26T10:30:00Z',
+        read: false,
+    },
+    {
+        id: 'n2',
+        projectId: '3',
+        projectName: 'Atal Setu — Mumbai Trans Harbour Link',
+        title: '🌉 Atal Setu: India\'s longest sea bridge!',
+        body: 'You\'re near the iconic 21.8 km bridge connecting Mumbai to Navi Mumbai. Now open for traffic!',
+        category: 'bridge',
+        timestamp: '2025-02-25T14:15:00Z',
+        read: true,
+    },
+    {
+        id: 'n3',
+        projectId: '2',
+        projectName: 'AIIMS Bilaspur',
+        title: '🏥 AIIMS Bilaspur is now operational!',
+        body: 'This world-class 750-bed hospital is now serving patients. Visit to learn more about available services.',
+        category: 'hospital',
+        timestamp: '2025-02-24T09:00:00Z',
+        read: true,
+    },
+    {
+        id: 'n4',
+        projectId: '5',
+        projectName: 'Dwarka Expressway',
+        title: '🛣️ Drive on the new Dwarka Expressway!',
+        body: 'The 14-lane expressway is fully operational. Travel time reduced from 2 hours to just 25 minutes.',
+        category: 'road',
+        timestamp: '2025-02-23T16:45:00Z',
+        read: false,
+    },
+];
+
+// Category icons (using Ionicons names)
+export const CATEGORY_ICONS: Record<string, string> = {
+    hospital: 'medical',
+    bridge: 'git-network',
+    college: 'school',
+    metro: 'train',
+    road: 'car',
+    government: 'business',
+    other: 'location',
+};
