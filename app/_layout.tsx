@@ -5,8 +5,9 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 
 import { Colors } from '@/constants/theme';
-import { requestLocationPermissions } from '@/services/location';
-import { registerForPushNotifications } from '@/services/notifications';
+import { updateLocation } from '@/services/api';
+import { requestLocationPermissions, watchLocation } from '@/services/location';
+import { registerForPushNotifications, sendLocalNotification } from '@/services/notifications';
 
 // Custom dark theme matching our design
 const GeoAdTechTheme = {
@@ -28,9 +29,35 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   useEffect(() => {
-    // Request permissions on app start
-    requestLocationPermissions();
-    registerForPushNotifications();
+    let subscription: any;
+
+    async function setupApp() {
+      // Setup notifications
+      registerForPushNotifications();
+
+      // Request permissions
+      const hasPermission = await requestLocationPermissions();
+      if (hasPermission) {
+        // Start watching location and send to backend
+        subscription = await watchLocation(async (location) => {
+          const { latitude, longitude } = location.coords;
+
+          // Call backend to check for geofence entry
+          const result = await updateLocation('user_123', latitude, longitude);
+
+          // If a new notification was triggered, show it locally
+          if (result.triggered && result.message) {
+            sendLocalNotification(result.message.title, result.message.body);
+          }
+        }, 30000); // Check every 30 seconds to save battery
+      }
+    }
+
+    setupApp();
+
+    return () => {
+      if (subscription) subscription.remove();
+    };
   }, []);
 
   return (

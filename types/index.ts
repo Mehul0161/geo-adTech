@@ -61,6 +61,7 @@ export interface NotificationItem {
 
 export interface FeedbackPayload {
     projectId: string;
+    userId: string;
     rating: number;
     comment?: string;
 }

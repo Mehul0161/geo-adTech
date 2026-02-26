@@ -1,436 +1,229 @@
 // ========================================
-// GeoAdTech — Map Screen (Home)
+// GeoAdTech — Civic Dashboard (Stitch UI)
 // ========================================
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
-  Animated,
-  Dimensions,
+  Image,
+  SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import MapView, { Circle, Marker } from 'react-native-maps';
 
-import { CATEGORY_ICONS, MOCK_PROJECTS } from '@/constants/mockData';
-import { BorderRadius, Colors, FontSizes, Shadows, Spacing } from '@/constants/theme';
-import { getCurrentLocation } from '@/services/location';
-import { Project } from '@/types';
+import { Colors, Shadows } from '@/constants/theme';
 
-const { width } = Dimensions.get('window');
-
-// Default to New Delhi if location unavailable
-const DEFAULT_REGION = {
-  latitude: 28.6139,
-  longitude: 77.209,
-  latitudeDelta: 0.15,
-  longitudeDelta: 0.15,
-};
-
-export default function MapScreen() {
-  const [region, setRegion] = useState(DEFAULT_REGION);
-  const [loading, setLoading] = useState(true);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const mapRef = useRef<MapView>(null);
-  const slideAnim = useRef(new Animated.Value(200)).current;
-
-  useEffect(() => {
-    loadLocation();
-  }, []);
-
-  useEffect(() => {
-    if (selectedProject) {
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        useNativeDriver: true,
-        tension: 80,
-        friction: 12,
-      }).start();
-    } else {
-      Animated.timing(slideAnim, {
-        toValue: 200,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [selectedProject]);
-
-  const loadLocation = async () => {
-    try {
-      const loc = await getCurrentLocation();
-      if (loc) {
-        setRegion({
-          latitude: loc.coords.latitude,
-          longitude: loc.coords.longitude,
-          latitudeDelta: 0.08,
-          longitudeDelta: 0.08,
-        });
-      }
-    } catch (e) {
-      // Use default region
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleMarkerPress = (project: Project) => {
-    setSelectedProject(project);
-    mapRef.current?.animateToRegion(
-      {
-        latitude: project.location.coordinates[1],
-        longitude: project.location.coordinates[0],
-        latitudeDelta: 0.02,
-        longitudeDelta: 0.02,
-      },
-      500
-    );
-  };
-
-  const goToMyLocation = async () => {
-    const loc = await getCurrentLocation();
-    if (loc) {
-      mapRef.current?.animateToRegion(
-        {
-          latitude: loc.coords.latitude,
-          longitude: loc.coords.longitude,
-          latitudeDelta: 0.02,
-          longitudeDelta: 0.02,
-        },
-        500
-      );
-    }
-  };
-
-  const getCategoryColor = (category: string) =>
-    Colors.categories[category] || Colors.textMuted;
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-        <Text style={styles.loadingText}>Finding your location...</Text>
-      </View>
-    );
-  }
-
+export default function DashboardScreen() {
   return (
-    <View style={styles.container}>
-      {/* Search Bar / Header */}
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={18} color={Colors.textMuted} />
-          <Text style={styles.searchPlaceholder}>Search projects near you...</Text>
+        <View style={styles.profileBox}>
+          <Image
+            source={{ uri: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=100' }}
+            style={styles.profileImg}
+          />
         </View>
+        <Text style={styles.headerTitle}>Civic Dashboard</Text>
+        <TouchableOpacity style={styles.notifBtn} onPress={() => router.push('/notifications' as any)}>
+          <Ionicons name="notifications" size={24} color={Colors.primary} />
+          <View style={styles.notifBadge} />
+        </TouchableOpacity>
       </View>
 
-      {/* Map */}
-      <MapView
-        ref={mapRef}
-        style={styles.map}
-        initialRegion={region}
-        customMapStyle={darkMapStyle}
-        showsUserLocation
-        showsMyLocationButton={false}
-        onPress={() => setSelectedProject(null)}
-      >
-        {MOCK_PROJECTS.map((project) => (
-          <React.Fragment key={project._id}>
-            <Circle
-              center={{
-                latitude: project.location.coordinates[1],
-                longitude: project.location.coordinates[0],
-              }}
-              radius={project.geofence.radius}
-              fillColor={`${getCategoryColor(project.category)}15`}
-              strokeColor={`${getCategoryColor(project.category)}40`}
-              strokeWidth={1}
-            />
-            <Marker
-              coordinate={{
-                latitude: project.location.coordinates[1],
-                longitude: project.location.coordinates[0],
-              }}
-              onPress={() => handleMarkerPress(project)}
-            >
-              <View
-                style={[
-                  styles.markerContainer,
-                  {
-                    backgroundColor: getCategoryColor(project.category),
-                    borderColor:
-                      selectedProject?._id === project._id
-                        ? Colors.white
-                        : getCategoryColor(project.category),
-                    transform: [
-                      { scale: selectedProject?._id === project._id ? 1.2 : 1 },
-                    ],
-                  },
-                ]}
-              >
-                <Ionicons
-                  name={CATEGORY_ICONS[project.category] as any}
-                  size={16}
-                  color={Colors.white}
-                />
-              </View>
-            </Marker>
-          </React.Fragment>
-        ))}
-      </MapView>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.greetingSection}>
+          <Text style={styles.greeting}>Hello, Alex</Text>
+          <View style={styles.locationRow}>
+            <Ionicons name="location" size={14} color={Colors.primary} />
+            <Text style={styles.locationText}>Downtown Sector</Text>
+          </View>
+        </View>
 
-      {/* My Location Button */}
-      <TouchableOpacity style={styles.myLocationBtn} onPress={goToMyLocation}>
-        <Ionicons name="locate" size={22} color={Colors.primary} />
-      </TouchableOpacity>
-
-      {/* Project Preview Card */}
-      {selectedProject && (
-        <Animated.View
-          style={[
-            styles.previewCard,
-            { transform: [{ translateY: slideAnim }] },
-          ]}
+        {/* Nearby Development Card */}
+        <Text style={styles.sectionTitle}>Nearby Development</Text>
+        <TouchableOpacity
+          style={styles.mainCard}
+          onPress={() => router.push('/map' as any)}
+          activeOpacity={0.9}
         >
-          <TouchableOpacity
-            style={styles.previewContent}
-            onPress={() => router.push(`/project/${selectedProject._id}`)}
-            activeOpacity={0.8}
-          >
-            <View style={styles.previewHeader}>
-              <View
-                style={[
-                  styles.categoryBadge,
-                  { backgroundColor: getCategoryColor(selectedProject.category) },
-                ]}
-              >
-                <Ionicons
-                  name={CATEGORY_ICONS[selectedProject.category] as any}
-                  size={12}
-                  color={Colors.white}
-                />
-                <Text style={styles.categoryText}>
-                  {selectedProject.category.toUpperCase()}
-                </Text>
+          <View style={styles.cardHero}>
+            <Image
+              source={{ uri: 'https://images.unsplash.com/photo-1541888946425-d81bb19480c5?q=80&w=800' }}
+              style={styles.cardImg}
+            />
+            <View style={styles.cardOverlay}>
+              <View style={styles.distanceBadge}>
+                <Ionicons name="location" size={12} color={Colors.text} />
+                <Text style={styles.distanceText}>500m away</Text>
               </View>
-              <View
-                style={[
-                  styles.statusBadge,
-                  {
-                    backgroundColor:
-                      selectedProject.status === 'completed'
-                        ? `${Colors.success}20`
-                        : selectedProject.status === 'in-progress'
-                          ? `${Colors.primary}20`
-                          : `${Colors.warning}20`,
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.statusText,
-                    {
-                      color:
-                        selectedProject.status === 'completed'
-                          ? Colors.success
-                          : selectedProject.status === 'in-progress'
-                            ? Colors.primary
-                            : Colors.warning,
-                    },
-                  ]}
-                >
-                  {selectedProject.status.replace('-', ' ').toUpperCase()}
-                </Text>
+              <View style={styles.statusBadge}>
+                <Text style={styles.statusText}>IN PROGRESS</Text>
+              </View>
+              <Text style={styles.cardTitle}>Harbor Bridge Expansion</Text>
+            </View>
+          </View>
+          <View style={styles.cardBody}>
+            <Text style={styles.cardDesc} numberOfLines={2}>
+              A major infrastructure project aimed at reducing congestion in the downtown sector by adding t...
+            </Text>
+            <View style={styles.progressSection}>
+              <View style={styles.progressBar}>
+                <View style={[styles.progressFill, { width: '75%' }]} />
+              </View>
+              <View style={styles.progressLabels}>
+                <Text style={styles.label}>Progress</Text>
+                <Text style={styles.val}>75%</Text>
               </View>
             </View>
+            <TouchableOpacity style={styles.viewBtn} onPress={() => router.push('/projects' as any)}>
+              <Text style={styles.viewBtnText}>View Details</Text>
+              <Ionicons name="arrow-forward" size={16} color={Colors.white} />
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
 
-            <Text style={styles.previewTitle} numberOfLines={1}>
-              {selectedProject.name}
-            </Text>
-            <Text style={styles.previewDesc} numberOfLines={2}>
-              {selectedProject.shortDescription}
-            </Text>
-
-            <View style={styles.previewFooter}>
-              <View style={styles.previewStat}>
-                <Ionicons name="star" size={14} color={Colors.warning} />
-                <Text style={styles.previewStatText}>
-                  {selectedProject.rating.toFixed(1)}
-                </Text>
-              </View>
-              <View style={styles.previewStat}>
-                <Ionicons name="pie-chart" size={14} color={Colors.primary} />
-                <Text style={styles.previewStatText}>
-                  {selectedProject.impactMetrics.completionPercentage}%
-                </Text>
-              </View>
-              <View style={styles.viewBtn}>
-                <Text style={styles.viewBtnText}>View Details</Text>
-                <Ionicons name="arrow-forward" size={14} color={Colors.primary} />
-              </View>
+        {/* Impact Stats */}
+        <Text style={styles.sectionTitle}>Impact Stats</Text>
+        <View style={styles.statsGrid}>
+          <View style={styles.statCard}>
+            <View style={[styles.statIconBox, { backgroundColor: '#E8EAF6' }]}>
+              <Ionicons name="git-branch" size={24} color={Colors.primary} />
             </View>
+            <Text style={styles.statVal}>12km</Text>
+            <Text style={styles.statLabel}>ROADS BUILT</Text>
+          </View>
+          <View style={styles.statCard}>
+            <View style={[styles.statIconBox, { backgroundColor: '#FFEBEE' }]}>
+              <Ionicons name="add" size={24} color="#EF5350" />
+            </View>
+            <Text style={styles.statVal}>3</Text>
+            <Text style={styles.statLabel}>HOSPITALS UPGRADED</Text>
+          </View>
+        </View>
+
+        {/* Action Cards */}
+        <View style={styles.actionGrid}>
+          <TouchableOpacity style={styles.issueCard}>
+            <Ionicons name="megaphone" size={32} color={Colors.primary} />
+            <Text style={styles.actionText}>Report Issue</Text>
           </TouchableOpacity>
-        </Animated.View>
-      )}
-    </View>
+          <TouchableOpacity style={styles.forumCard} onPress={() => router.push('/discuss' as any)}>
+            <Ionicons name="chatbubbles" size={32} color="#757575" />
+            <Text style={styles.actionText}>Community Forum</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={{ height: 100 }} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
-// Dark map style for Google Maps
-const darkMapStyle = [
-  { elementType: 'geometry', stylers: [{ color: '#1d2c4d' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#8ec3b9' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#1a3646' }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#304a7d' }] },
-  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#255763' }] },
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0e1626' }] },
-  { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#283d6a' }] },
-  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#2f3948' }] },
-];
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.background,
-  },
-  loadingText: {
-    color: Colors.textSecondary,
-    marginTop: Spacing.md,
-    fontSize: FontSizes.md,
-  },
+  container: { flex: 1, backgroundColor: Colors.background },
   header: {
-    position: 'absolute',
-    top: 50,
-    left: Spacing.md,
-    right: Spacing.md,
-    zIndex: 10,
-  },
-  searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 4,
-    gap: Spacing.sm,
-    ...Shadows.medium,
-  },
-  searchPlaceholder: {
-    color: Colors.textMuted,
-    fontSize: FontSizes.md,
-  },
-  map: {
-    flex: 1,
-  },
-  markerContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    ...Shadows.small,
-  },
-  myLocationBtn: {
-    position: 'absolute',
-    right: Spacing.md,
-    bottom: 220,
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.full,
-    width: 48,
-    height: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...Shadows.medium,
-  },
-  previewCard: {
-    position: 'absolute',
-    bottom: 80,
-    left: Spacing.md,
-    right: Spacing.md,
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    ...Shadows.medium,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  previewContent: {
-    padding: Spacing.md,
-  },
-  previewHeader: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    backgroundColor: Colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border
   },
-  categoryBadge: {
+  profileBox: { width: 40, height: 40, borderRadius: 10, overflow: 'hidden', backgroundColor: '#F0F0F0' },
+  profileImg: { width: '100%', height: '100%' },
+  headerTitle: { fontSize: 18, fontWeight: '800', color: Colors.text },
+  notifBtn: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center', position: 'relative' },
+  notifBadge: { position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.error, borderWidth: 1.5, borderColor: Colors.white },
+
+  scrollContent: { padding: 20 },
+  greetingSection: { marginBottom: 25 },
+  greeting: { fontSize: 32, fontWeight: '900', color: Colors.text, marginBottom: 5 },
+  locationRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  locationText: { fontSize: 14, color: Colors.textSecondary, fontWeight: '600' },
+
+  sectionTitle: { fontSize: 20, fontWeight: '900', color: Colors.text, marginBottom: 15, marginTop: 10 },
+
+  mainCard: { backgroundColor: Colors.white, borderRadius: 25, overflow: 'hidden', ...Shadows.premium, marginBottom: 30 },
+  cardHero: { height: 200, position: 'relative' },
+  cardImg: { width: '100%', height: '100%' },
+  cardOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    padding: 20,
+    justifyContent: 'space-between'
+  },
+  distanceBadge: {
+    alignSelf: 'flex-end',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
-    borderRadius: BorderRadius.sm,
-    gap: 4,
+    backgroundColor: Colors.white,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 6
   },
-  categoryText: {
-    color: Colors.white,
-    fontSize: FontSizes.xs,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
+  distanceText: { fontSize: 11, fontWeight: '800', color: Colors.text },
   statusBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
-    borderRadius: BorderRadius.sm,
+    backgroundColor: Colors.accent,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginBottom: 5
   },
-  statusText: {
-    fontSize: FontSizes.xs,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  previewTitle: {
-    color: Colors.text,
-    fontSize: FontSizes.lg,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  previewDesc: {
-    color: Colors.textSecondary,
-    fontSize: FontSizes.sm,
-    lineHeight: 18,
-    marginBottom: Spacing.sm,
-  },
-  previewFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-  },
-  previewStat: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  previewStatText: {
-    color: Colors.textSecondary,
-    fontSize: FontSizes.sm,
-    fontWeight: '600',
-  },
+  statusText: { color: Colors.white, fontSize: 10, fontWeight: '900' },
+  cardTitle: { color: Colors.white, fontSize: 24, fontWeight: '900', textShadowColor: 'rgba(0,0,0,0.3)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 4 },
+
+  cardBody: { padding: 20 },
+  cardDesc: { fontSize: 14, color: Colors.textSecondary, lineHeight: 22, marginBottom: 20 },
+  progressSection: { marginBottom: 20 },
+  progressBar: { height: 8, backgroundColor: '#F0F0F0', borderRadius: 4, overflow: 'hidden', marginBottom: 8 },
+  progressFill: { height: '100%', backgroundColor: Colors.primary, borderRadius: 4 },
+  progressLabels: { flexDirection: 'row', justifyContent: 'space-between' },
+  label: { fontSize: 12, color: Colors.textMuted, fontWeight: '700' },
+  val: { fontSize: 12, color: Colors.text, fontWeight: '900' },
   viewBtn: {
+    backgroundColor: Colors.primary,
+    height: 55,
+    borderRadius: 15,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginLeft: 'auto',
+    justifyContent: 'center',
+    gap: 10,
+    ...Shadows.glow(Colors.primary)
   },
-  viewBtnText: {
-    color: Colors.primary,
-    fontSize: FontSizes.sm,
-    fontWeight: '600',
+  viewBtnText: { color: Colors.white, fontSize: 16, fontWeight: '800' },
+
+  statsGrid: { flexDirection: 'row', gap: 15, marginBottom: 25 },
+  statCard: { flex: 1, backgroundColor: Colors.white, borderRadius: 20, padding: 20, ...Shadows.small },
+  statIconBox: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginBottom: 15 },
+  statVal: { fontSize: 24, fontWeight: '900', color: Colors.text, marginBottom: 4 },
+  statLabel: { fontSize: 10, color: Colors.textMuted, fontWeight: '800' },
+
+  actionGrid: { flexDirection: 'row', gap: 15 },
+  issueCard: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 20,
+    padding: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderStyle: 'dashed'
   },
+  forumCard: {
+    flex: 1,
+    backgroundColor: Colors.white,
+    borderRadius: 20,
+    padding: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadows.small
+  },
+  actionText: { marginTop: 15, fontSize: 14, fontWeight: '800', color: Colors.textSecondary }
 });

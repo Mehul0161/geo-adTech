@@ -1,5 +1,5 @@
 // ========================================
-// GeoAdTech — Profile Screen
+// GeoAdTech — Profile Screen (Stitch Style)
 // ========================================
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
@@ -12,7 +12,7 @@ import {
     View,
 } from 'react-native';
 
-import { BorderRadius, Colors, FontSizes, Shadows, Spacing } from '@/constants/theme';
+import { Colors, Shadows } from '@/constants/theme';
 
 export default function ProfileScreen() {
     const [notifEnabled, setNotifEnabled] = React.useState(true);
@@ -22,122 +22,139 @@ export default function ProfileScreen() {
         {
             icon: 'language-outline',
             title: 'Language',
-            subtitle: 'English',
+            subtitle: 'English (In-App)',
             action: () => { },
         },
         {
             icon: 'shield-checkmark-outline',
             title: 'Privacy Policy',
-            subtitle: 'How we handle your data',
+            subtitle: 'Public Data Transparency',
             action: () => { },
         },
         {
             icon: 'help-circle-outline',
-            title: 'Help & FAQ',
-            subtitle: 'Get answers to common questions',
+            title: 'Citizen Support',
+            subtitle: '24/7 Municipal Help',
             action: () => { },
         },
         {
-            icon: 'information-circle-outline',
-            title: 'About GeoAdTech',
-            subtitle: 'Version 1.0.0',
+            icon: 'settings-outline',
+            title: 'Gov Settings',
+            subtitle: 'Regional Preferences',
             action: () => { },
         },
     ];
 
     return (
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <ScrollView style={styles.container} showsVerticalScrollIndicator={false} bounces={false}>
             {/* Header */}
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>Profile</Text>
+                <Text style={styles.headerSubtitle}>User Account</Text>
+                <Text style={styles.headerTitle}>Civic Identity</Text>
             </View>
 
-            {/* User Card */}
-            <View style={styles.userCard}>
-                <View style={styles.avatar}>
-                    <Ionicons name="person" size={32} color={Colors.primary} />
+            {/* Citizen ID Card (Stitch Inspired) */}
+            <View style={styles.citizenCard}>
+                <View style={styles.cardHeader}>
+                    <View>
+                        <Text style={styles.cardOrg}>DEMOCRACY DEPT. OF DELHI</Text>
+                        <Text style={styles.cardTitle}>OFFICIAL CITIZEN PASS</Text>
+                    </View>
+                    <Ionicons name="finger-print" size={24} color={Colors.white} />
                 </View>
-                <View style={styles.userInfo}>
-                    <Text style={styles.userName}>Citizen User</Text>
-                    <Text style={styles.userEmail}>user@geoadtech.com</Text>
+
+                <View style={styles.cardBody}>
+                    <View style={styles.cardAvatar}>
+                        <Ionicons name="person" size={32} color={Colors.primary} />
+                    </View>
+                    <View style={styles.cardMeta}>
+                        <Text style={styles.cardName}>Piyush Kumar</Text>
+                        <Text style={styles.cardId}>ID: CIVIC-9421-2026</Text>
+                        <View style={styles.verificationBadge}>
+                            <Ionicons name="checkmark-circle" size={12} color={Colors.white} />
+                            <Text style={styles.verificationText}>Verified Resident</Text>
+                        </View>
+                    </View>
                 </View>
-                <TouchableOpacity style={styles.editBtn}>
-                    <Ionicons name="pencil" size={16} color={Colors.primary} />
-                </TouchableOpacity>
+
+                <View style={styles.cardFooter}>
+                    <View style={styles.footerItem}>
+                        <Text style={styles.footerLabel}>CONTRIBUTIONS</Text>
+                        <Text style={styles.footerVal}>Platinum Rank</Text>
+                    </View>
+                    <View style={styles.footerItem}>
+                        <Text style={styles.footerLabel}>CREDITS</Text>
+                        <Text style={styles.footerVal}>1,240 XP</Text>
+                    </View>
+                </View>
             </View>
 
-            {/* Stats */}
+            {/* Engagement Stats */}
             <View style={styles.statsRow}>
-                <View style={styles.statItem}>
-                    <Text style={styles.statValue}>12</Text>
-                    <Text style={styles.statLabel}>Projects Visited</Text>
+                <View style={styles.statBox}>
+                    <Text style={styles.statVal}>18</Text>
+                    <Text style={styles.statLabel}>Sites Tracked</Text>
                 </View>
-                <View style={styles.statDivider} />
-                <View style={styles.statItem}>
-                    <Text style={styles.statValue}>4</Text>
-                    <Text style={styles.statLabel}>Feedback Given</Text>
+                <View style={styles.statDiv} />
+                <View style={styles.statBox}>
+                    <Text style={styles.statVal}>5</Text>
+                    <Text style={styles.statLabel}>Reviews</Text>
                 </View>
-                <View style={styles.statDivider} />
-                <View style={styles.statItem}>
-                    <Text style={styles.statValue}>28</Text>
-                    <Text style={styles.statLabel}>Alerts Received</Text>
+                <View style={styles.statDiv} />
+                <View style={styles.statBox}>
+                    <Text style={styles.statVal}>0.2mi</Text>
+                    <Text style={styles.statLabel}>Radius Avg</Text>
                 </View>
             </View>
 
-            {/* Settings Section */}
-            <Text style={styles.sectionTitle}>Preferences</Text>
-
-            <View style={styles.settingsCard}>
+            {/* Preferences Section */}
+            <Text style={styles.sectionTitle}>Engagement Prefs</Text>
+            <View style={styles.settingsGroup}>
                 <View style={styles.settingRow}>
                     <View style={styles.settingLeft}>
-                        <View style={[styles.settingIcon, { backgroundColor: `${Colors.primary}20` }]}>
+                        <View style={[styles.settingIcon, { backgroundColor: Colors.primaryLight }]}>
                             <Ionicons name="notifications" size={18} color={Colors.primary} />
                         </View>
                         <View>
-                            <Text style={styles.settingTitle}>Push Notifications</Text>
-                            <Text style={styles.settingSubtitle}>Get alerts for nearby projects</Text>
+                            <Text style={styles.settingTitle}>Geo-Notifications</Text>
+                            <Text style={styles.settingSubtitle}>Smart alerts for nearby works</Text>
                         </View>
                     </View>
                     <Switch
                         value={notifEnabled}
                         onValueChange={setNotifEnabled}
-                        trackColor={{ false: Colors.surfaceLight, true: `${Colors.primary}50` }}
+                        trackColor={{ false: Colors.border, true: Colors.primaryLight }}
                         thumbColor={notifEnabled ? Colors.primary : Colors.textMuted}
                     />
                 </View>
 
-                <View style={styles.settingDivider} />
+                <View style={styles.settingDiv} />
 
                 <View style={styles.settingRow}>
                     <View style={styles.settingLeft}>
-                        <View style={[styles.settingIcon, { backgroundColor: `${Colors.accent}20` }]}>
+                        <View style={[styles.settingIcon, { backgroundColor: `${Colors.accent}15` }]}>
                             <Ionicons name="location" size={18} color={Colors.accent} />
                         </View>
                         <View>
-                            <Text style={styles.settingTitle}>Background Location</Text>
-                            <Text style={styles.settingSubtitle}>Auto-detect geo-fenced areas</Text>
+                            <Text style={styles.settingTitle}>Auto-Detection</Text>
+                            <Text style={styles.settingSubtitle}>Scan zones while driving</Text>
                         </View>
                     </View>
                     <Switch
                         value={bgLocation}
                         onValueChange={setBgLocation}
-                        trackColor={{ false: Colors.surfaceLight, true: `${Colors.accent}50` }}
+                        trackColor={{ false: Colors.border, true: `${Colors.accent}30` }}
                         thumbColor={bgLocation ? Colors.accent : Colors.textMuted}
                     />
                 </View>
             </View>
 
-            {/* Menu Items */}
+            {/* General Menu */}
             <Text style={styles.sectionTitle}>General</Text>
-
-            <View style={styles.menuCard}>
+            <View style={styles.menuGroup}>
                 {menuItems.map((item, index) => (
                     <React.Fragment key={item.title}>
-                        <TouchableOpacity
-                            style={styles.menuRow}
-                            onPress={item.action}
-                            activeOpacity={0.7}
-                        >
+                        <TouchableOpacity style={styles.menuRow} activeOpacity={0.7}>
                             <View style={styles.menuLeft}>
                                 <Ionicons name={item.icon as any} size={20} color={Colors.textSecondary} />
                                 <View>
@@ -145,17 +162,16 @@ export default function ProfileScreen() {
                                     <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
                                 </View>
                             </View>
-                            <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+                            <Ionicons name="chevron-forward" size={18} color={Colors.border} />
                         </TouchableOpacity>
-                        {index < menuItems.length - 1 && <View style={styles.settingDivider} />}
+                        {index < menuItems.length - 1 && <View style={styles.settingDiv} />}
                     </React.Fragment>
                 ))}
             </View>
 
-            {/* Sign Out */}
-            <TouchableOpacity style={styles.signOutBtn}>
+            <TouchableOpacity style={styles.logoutBtn}>
                 <Ionicons name="log-out-outline" size={20} color={Colors.error} />
-                <Text style={styles.signOutText}>Sign Out</Text>
+                <Text style={styles.logoutText}>End Civic Session</Text>
             </TouchableOpacity>
 
             <View style={{ height: 100 }} />
@@ -164,179 +180,43 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.background,
-    },
-    header: {
-        paddingHorizontal: Spacing.lg,
-        paddingTop: 60,
-        paddingBottom: Spacing.md,
-    },
-    headerTitle: {
-        fontSize: FontSizes.xxl,
-        fontWeight: '800',
-        color: Colors.text,
-    },
-    userCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: Colors.surface,
-        marginHorizontal: Spacing.md,
-        padding: Spacing.md,
-        borderRadius: BorderRadius.lg,
-        gap: Spacing.sm,
-        ...Shadows.small,
-    },
-    avatar: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        backgroundColor: `${Colors.primary}15`,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    userInfo: {
-        flex: 1,
-    },
-    userName: {
-        color: Colors.text,
-        fontSize: FontSizes.lg,
-        fontWeight: '700',
-    },
-    userEmail: {
-        color: Colors.textSecondary,
-        fontSize: FontSizes.sm,
-        marginTop: 2,
-    },
-    editBtn: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: `${Colors.primary}15`,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    statsRow: {
-        flexDirection: 'row',
-        backgroundColor: Colors.surface,
-        marginHorizontal: Spacing.md,
-        marginTop: Spacing.md,
-        padding: Spacing.md,
-        borderRadius: BorderRadius.lg,
-        ...Shadows.small,
-    },
-    statItem: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    statValue: {
-        fontSize: FontSizes.xl,
-        fontWeight: '800',
-        color: Colors.primary,
-    },
-    statLabel: {
-        fontSize: FontSizes.xs,
-        color: Colors.textSecondary,
-        marginTop: 4,
-    },
-    statDivider: {
-        width: 1,
-        backgroundColor: Colors.border,
-    },
-    sectionTitle: {
-        fontSize: FontSizes.sm,
-        fontWeight: '700',
-        color: Colors.textMuted,
-        textTransform: 'uppercase',
-        letterSpacing: 1,
-        marginHorizontal: Spacing.lg,
-        marginTop: Spacing.lg,
-        marginBottom: Spacing.sm,
-    },
-    settingsCard: {
-        backgroundColor: Colors.surface,
-        marginHorizontal: Spacing.md,
-        borderRadius: BorderRadius.lg,
-        ...Shadows.small,
-    },
-    settingRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: Spacing.md,
-    },
-    settingLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: Spacing.sm,
-        flex: 1,
-    },
-    settingIcon: {
-        width: 36,
-        height: 36,
-        borderRadius: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    settingTitle: {
-        color: Colors.text,
-        fontSize: FontSizes.md,
-        fontWeight: '600',
-    },
-    settingSubtitle: {
-        color: Colors.textSecondary,
-        fontSize: FontSizes.xs,
-        marginTop: 2,
-    },
-    settingDivider: {
-        height: 1,
-        backgroundColor: Colors.border,
-        marginHorizontal: Spacing.md,
-    },
-    menuCard: {
-        backgroundColor: Colors.surface,
-        marginHorizontal: Spacing.md,
-        borderRadius: BorderRadius.lg,
-        ...Shadows.small,
-    },
-    menuRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: Spacing.md,
-    },
-    menuLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: Spacing.sm,
-    },
-    menuTitle: {
-        color: Colors.text,
-        fontSize: FontSizes.md,
-        fontWeight: '600',
-    },
-    menuSubtitle: {
-        color: Colors.textSecondary,
-        fontSize: FontSizes.xs,
-        marginTop: 2,
-    },
-    signOutBtn: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: Spacing.sm,
-        marginHorizontal: Spacing.md,
-        marginTop: Spacing.lg,
-        padding: Spacing.md,
-        borderRadius: BorderRadius.lg,
-        borderWidth: 1,
-        borderColor: `${Colors.error}30`,
-        backgroundColor: `${Colors.error}08`,
-    },
-    signOutText: {
-        color: Colors.error,
-        fontSize: FontSizes.md,
-        fontWeight: '600',
-    },
+    container: { flex: 1, backgroundColor: Colors.background },
+    header: { paddingTop: 70, paddingHorizontal: 25, paddingBottom: 25, backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.border },
+    headerSubtitle: { fontSize: 10, color: Colors.primary, fontWeight: '800', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 },
+    headerTitle: { fontSize: 26, fontWeight: '900', color: Colors.text },
+    citizenCard: { backgroundColor: Colors.primary, margin: 20, borderRadius: 25, padding: 25, ...Shadows.premium },
+    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 25 },
+    cardOrg: { color: 'rgba(255,255,255,0.7)', fontSize: 9, fontWeight: '900', letterSpacing: 1 },
+    cardTitle: { color: Colors.white, fontSize: 16, fontWeight: '900' },
+    cardBody: { flexDirection: 'row', alignItems: 'center', gap: 15, marginBottom: 25 },
+    cardAvatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: Colors.white, justifyContent: 'center', alignItems: 'center' },
+    cardMeta: { flex: 1 },
+    cardName: { color: Colors.white, fontSize: 22, fontWeight: '800' },
+    cardId: { color: 'rgba(255,255,255,0.6)', fontSize: 11, marginTop: 2 },
+    verificationBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8, alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)' },
+    verificationText: { color: Colors.white, fontSize: 9, fontWeight: '800' },
+    cardFooter: { flexDirection: 'row', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.15)', paddingTop: 20, gap: 40 },
+    footerItem: {},
+    footerLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 9, fontWeight: '900', marginBottom: 2 },
+    footerVal: { color: Colors.white, fontSize: 14, fontWeight: '800' },
+    statsRow: { flexDirection: 'row', backgroundColor: Colors.white, marginHorizontal: 20, borderRadius: 20, padding: 20, ...Shadows.small, marginTop: 5 },
+    statBox: { flex: 1, alignItems: 'center' },
+    statVal: { fontSize: 20, fontWeight: '900', color: Colors.primary, marginBottom: 4 },
+    statLabel: { fontSize: 10, color: Colors.textSecondary, fontWeight: '700' },
+    statDiv: { width: 1, backgroundColor: Colors.border },
+    sectionTitle: { fontSize: 13, fontWeight: '800', color: Colors.textMuted, textTransform: 'uppercase', letterSpacing: 1, marginHorizontal: 25, marginTop: 30, marginBottom: 12 },
+    settingsGroup: { backgroundColor: Colors.white, marginHorizontal: 20, borderRadius: 20, ...Shadows.small },
+    settingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 18 },
+    settingLeft: { flexDirection: 'row', alignItems: 'center', gap: 15 },
+    settingIcon: { width: 38, height: 38, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+    settingTitle: { fontSize: 15, fontWeight: '700', color: Colors.text },
+    settingSubtitle: { fontSize: 11, color: Colors.textSecondary, marginTop: 2 },
+    settingDiv: { height: 1, backgroundColor: Colors.background, marginHorizontal: 15 },
+    menuGroup: { backgroundColor: Colors.white, marginHorizontal: 20, borderRadius: 20, ...Shadows.small },
+    menuRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 18 },
+    menuLeft: { flexDirection: 'row', alignItems: 'center', gap: 15 },
+    menuTitle: { fontSize: 15, fontWeight: '700', color: Colors.text },
+    menuSubtitle: { fontSize: 11, color: Colors.textSecondary, marginTop: 2 },
+    logoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginHorizontal: 20, marginTop: 30, padding: 18, borderRadius: 20, borderWidth: 1, borderColor: `${Colors.error}20`, backgroundColor: `${Colors.error}05` },
+    logoutText: { color: Colors.error, fontSize: 15, fontWeight: '700' }
 });

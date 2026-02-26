@@ -1,48 +1,48 @@
 // ========================================
-// GeoAdTech — Design Theme
+// GeoAdTech — UI Theme (Stitch Inspired)
 // ========================================
 
 export const Colors = {
-  // Primary palette
-  primary: '#38bdf8',        // Sky blue
-  primaryDark: '#0284c7',
-  primaryLight: '#7dd3fc',
+  // Primary palette - Deep Navy (Stitch)
+  primary: '#1A237E',
+  primaryDark: '#0D47A1',
+  primaryLight: '#E8EAF6',
 
-  // Accent
-  accent: '#8b5cf6',         // Violet
-  accentLight: '#a78bfa',
+  // Accent - Orange/Yellow (Stitch)
+  accent: '#FF9800',
+  accentLight: '#FFC107',
 
-  // Backgrounds
-  background: '#0f172a',     // Deep navy
-  surface: '#1e293b',        // Slate 800
-  surfaceLight: '#334155',   // Slate 700
-  card: '#1e293b',
+  // Backgrounds - Light & Clean (Stitch)
+  background: '#F5F5F5',
+  surface: '#FFFFFF',
+  surfaceLight: '#F0F4F7',
+  card: '#FFFFFF',
 
   // Text
-  text: '#f8fafc',           // Slate 50
-  textSecondary: '#94a3b8',  // Slate 400
-  textMuted: '#64748b',      // Slate 500
+  text: '#212121',
+  textSecondary: '#757575',
+  textMuted: '#9E9E9E',
 
   // Status
-  success: '#22c55e',
-  warning: '#f59e0b',
-  error: '#ef4444',
-  info: '#38bdf8',
+  success: '#2E7D32',
+  warning: '#ED6C02',
+  error: '#D32F2F',
+  info: '#0288D1',
 
-  // Category colors
+  // Category colors - Stitch Inspired
   categories: {
-    hospital: '#ef4444',
-    bridge: '#f59e0b',
-    college: '#8b5cf6',
-    metro: '#06b6d4',
-    road: '#22c55e',
-    government: '#3b82f6',
-    other: '#64748b',
+    hospital: '#EF5350',     // Light Red
+    bridge: '#FFA726',       // Light Orange
+    college: '#AB47BC',
+    metro: '#26C6DA',
+    road: '#66BB6A',         // Light Green
+    government: '#5C6BC0',
+    other: '#78909C',
   } as Record<string, string>,
 
   // Misc
-  border: '#334155',
-  overlay: 'rgba(0, 0, 0, 0.6)',
+  border: '#E0E0E0',
+  overlay: 'rgba(0, 0, 0, 0.5)',
   white: '#ffffff',
   black: '#000000',
   transparent: 'transparent',
@@ -62,16 +62,16 @@ export const FontSizes = {
   sm: 13,
   md: 15,
   lg: 17,
-  xl: 22,
-  xxl: 28,
-  hero: 42,
+  xl: 20,
+  xxl: 26,
+  hero: 36,
 };
 
 export const BorderRadius = {
   sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 24,
+  md: 15,
+  lg: 20,
+  xl: 30,
   full: 9999,
 };
 
@@ -79,28 +79,35 @@ export const Shadows = {
   small: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 2,
   },
   medium: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
-    elevation: 6,
+    elevation: 4,
+  },
+  premium: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 8,
   },
   glow: (color: string) => ({
     shadowColor: color,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
   }),
 };
 
 export const StatusColors: Record<string, string> = {
-  planned: '#f59e0b',
-  'in-progress': '#38bdf8',
-  completed: '#22c55e',
+  planned: '#757575',
+  'in-progress': '#FFC107',
+  completed: '#2E7D32',
 };

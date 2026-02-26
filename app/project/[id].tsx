@@ -1,12 +1,13 @@
 // ========================================
-// GeoAdTech — Project Detail Screen
+// GeoAdTech — Project Details (Stitch Style)
 // ========================================
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
-    Animated,
-    Dimensions,
+    ActivityIndicator,
+    Alert,
+    Image,
     ScrollView,
     StyleSheet,
     Text,
@@ -14,631 +15,280 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import MapView, { Circle, Marker } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
-import { CATEGORY_ICONS, MOCK_PROJECTS } from '@/constants/mockData';
-import { BorderRadius, Colors, FontSizes, Shadows, Spacing, StatusColors } from '@/constants/theme';
+import { CATEGORY_ICONS } from '@/constants/mockData';
+import { Colors, Shadows } from '@/constants/theme';
+import { getProjectById, submitFeedback } from '@/services/api';
 import { Project } from '@/types';
 
-const { width } = Dimensions.get('window');
-
 export default function ProjectDetailScreen() {
-    const { id } = useLocalSearchParams<{ id: string }>();
+    const { id } = useLocalSearchParams();
     const [project, setProject] = useState<Project | null>(null);
-    const [showFeedback, setShowFeedback] = useState(false);
-    const [rating, setRating] = useState(0);
-    const [comment, setComment] = useState('');
-    const [feedbackSent, setFeedbackSent] = useState(false);
-    const scrollY = React.useRef(new Animated.Value(0)).current;
+    const [loading, setLoading] = useState(true);
+    const [feedback, setFeedback] = useState('');
+    const [rating, setRating] = useState(5);
+    const [submitted, setSubmitted] = useState(false);
 
     useEffect(() => {
-        const found = MOCK_PROJECTS.find((p) => p._id === id);
-        if (found) setProject(found);
+        if (id) fetchDetail(id as string);
     }, [id]);
 
-    if (!project) {
-        return (
-            <View style={styles.loadingContainer}>
-                <Text style={styles.loadingText}>Loading...</Text>
-            </View>
-        );
-    }
-
-    const categoryColor = Colors.categories[project.category] || Colors.textMuted;
-    const statusColor = StatusColors[project.status] || Colors.textMuted;
-
-    const formatNumber = (num: number): string => {
-        if (num >= 1e9) return (num / 1e9).toFixed(1) + 'B';
-        if (num >= 1e7) return (num / 1e7).toFixed(1) + 'Cr';
-        if (num >= 1e5) return (num / 1e5).toFixed(1) + 'L';
-        if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
-        return num.toString();
+    const fetchDetail = async (projectId: string) => {
+        try {
+            const data = await getProjectById(projectId);
+            setProject(data || null);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleSubmitFeedback = () => {
-        if (rating === 0) return;
-        setFeedbackSent(true);
-        setTimeout(() => {
-            setShowFeedback(false);
-            setFeedbackSent(false);
-            setRating(0);
-            setComment('');
-        }, 2000);
+    const handleFeedback = async () => {
+        if (!feedback) return;
+        try {
+            await submitFeedback({
+                projectId: project!._id,
+                userId: 'user_123',
+                rating,
+                comment: feedback
+            });
+            setSubmitted(true);
+            setFeedback('');
+        } catch (e) {
+            Alert.alert('Error', 'Could not submit feedback.');
+        }
     };
+
+    if (loading) return (
+        <View style={styles.center}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+            <Text style={styles.loadingText}>Fetching Project Data...</Text>
+        </View>
+    );
+
+    if (!project) return (
+        <View style={styles.center}>
+            <Text style={styles.errorText}>Project not found.</Text>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+                <Text style={{ color: Colors.primary }}>Go Back</Text>
+            </TouchableOpacity>
+        </View>
+    );
+
+    const categoryColor = Colors.categories[project.category] || Colors.textSecondary;
 
     return (
-        <ScrollView
-            style={styles.container}
-            showsVerticalScrollIndicator={false}
-            onScroll={Animated.event(
-                [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-                { useNativeDriver: false }
-            )}
-        >
-            {/* Mini Map Header */}
-            <View style={styles.mapContainer}>
-                <MapView
-                    style={styles.headerMap}
-                    initialRegion={{
-                        latitude: project.location.coordinates[1],
-                        longitude: project.location.coordinates[0],
-                        latitudeDelta: 0.015,
-                        longitudeDelta: 0.015,
-                    }}
-                    scrollEnabled={false}
-                    zoomEnabled={false}
-                    customMapStyle={darkMapStyle}
-                >
-                    <Circle
-                        center={{
-                            latitude: project.location.coordinates[1],
-                            longitude: project.location.coordinates[0],
-                        }}
-                        radius={project.geofence.radius}
-                        fillColor={`${categoryColor}20`}
-                        strokeColor={`${categoryColor}60`}
-                        strokeWidth={2}
-                    />
-                    <Marker
-                        coordinate={{
-                            latitude: project.location.coordinates[1],
-                            longitude: project.location.coordinates[0],
-                        }}
-                    >
-                        <View style={[styles.marker, { backgroundColor: categoryColor }]}>
-                            <Ionicons
-                                name={CATEGORY_ICONS[project.category] as any}
-                                size={18}
-                                color={Colors.white}
-                            />
+        <ScrollView style={styles.container} bounces={false}>
+            {/* Hero Image Section */}
+            <View style={styles.heroContainer}>
+                <Image
+                    source={{ uri: project.images[0] || 'https://images.unsplash.com/photo-1590066839089-6d63430030da?q=80&w=1000' }}
+                    style={styles.heroImage}
+                />
+                <View style={styles.heroOverlay}>
+                    <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()}>
+                        <Ionicons name="close" size={24} color={Colors.white} />
+                    </TouchableOpacity>
+                    <View style={styles.heroTitles}>
+                        <View style={[styles.categoryBadge, { backgroundColor: categoryColor }]}>
+                            <Text style={styles.categoryText}>{project.category.toUpperCase()}</Text>
                         </View>
-                    </Marker>
-                </MapView>
-                <View style={styles.mapOverlay} />
+                        <Text style={styles.heroTitle}>{project.name}</Text>
+                        <View style={styles.heroMeta}>
+                            <Ionicons name="location" size={14} color="rgba(255,255,255,0.7)" />
+                            <Text style={styles.heroLocation}>New Delhi, India</Text>
+                        </View>
+                    </View>
+                </View>
             </View>
 
-            {/* Content */}
+            {/* Content Body */}
             <View style={styles.content}>
-                {/* Badges */}
-                <View style={styles.badgeRow}>
-                    <View style={[styles.categoryBadge, { backgroundColor: categoryColor }]}>
-                        <Ionicons
-                            name={CATEGORY_ICONS[project.category] as any}
-                            size={13}
-                            color={Colors.white}
-                        />
-                        <Text style={styles.badgeText}>
-                            {project.category.toUpperCase()}
-                        </Text>
+
+                {/* Stats Row */}
+                <View style={styles.statsGrid}>
+                    <View style={styles.statCard}>
+                        <Text style={styles.statVal}>₹{project.impactMetrics.budget.split(' ')[1]}</Text>
+                        <Text style={styles.statLabel}>Investment</Text>
                     </View>
-                    <View style={[styles.statusBadge, { backgroundColor: `${statusColor}20` }]}>
-                        <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-                        <Text style={[styles.statusBadgeText, { color: statusColor }]}>
-                            {project.status.replace('-', ' ').toUpperCase()}
-                        </Text>
+                    <View style={styles.statCard}>
+                        <Text style={styles.statVal}>{project.impactMetrics.completionPercentage}%</Text>
+                        <Text style={styles.statLabel}>In Progress</Text>
+                    </View>
+                    <View style={styles.statCard}>
+                        <Text style={styles.statVal}>{(project.impactMetrics.beneficiaries / 1000000).toFixed(1)}M</Text>
+                        <Text style={styles.statLabel}>Citizens Impacted</Text>
                     </View>
                 </View>
 
-                {/* Title */}
-                <Text style={styles.title}>{project.name}</Text>
-
-                {/* Campaign Quote */}
-                <View style={styles.quoteCard}>
-                    <View style={styles.quoteLine} />
-                    <Text style={styles.quoteText}>"{project.campaign.text}"</Text>
+                {/* AI Notification Card */}
+                <View style={[styles.aiCard, { borderLeftColor: categoryColor }]}>
+                    <View style={styles.aiHeader}>
+                        <Ionicons name="sparkles" size={18} color={Colors.accent} />
+                        <Text style={styles.aiLabel}>AI-DRIVEN CAMPAIGN MESSAGE</Text>
+                    </View>
+                    <Text style={styles.aiText}>"{project.campaign.text}"</Text>
+                    <Text style={styles.aiTone}>Analysis: {(project.campaign.aiTone || 'informative').toUpperCase()} TONE</Text>
                 </View>
 
-                {/* Progress Bar */}
-                <View style={styles.progressSection}>
-                    <View style={styles.progressHeader}>
-                        <Text style={styles.progressLabel}>Completion</Text>
-                        <Text style={[styles.progressValue, { color: statusColor }]}>
-                            {project.impactMetrics.completionPercentage}%
-                        </Text>
-                    </View>
-                    <View style={styles.progressBarBg}>
-                        <Animated.View
-                            style={[
-                                styles.progressBarFill,
-                                {
-                                    width: `${project.impactMetrics.completionPercentage}%`,
-                                    backgroundColor: statusColor,
-                                },
-                            ]}
-                        />
-                    </View>
-                </View>
-
-                {/* Impact Metrics */}
-                <Text style={styles.sectionTitle}>Impact Metrics</Text>
-                <View style={styles.metricsGrid}>
-                    <View style={styles.metricCard}>
-                        <Ionicons name="people" size={22} color={Colors.primary} />
-                        <Text style={styles.metricValue}>
-                            {formatNumber(project.impactMetrics.beneficiaries)}
-                        </Text>
-                        <Text style={styles.metricLabel}>Beneficiaries</Text>
-                    </View>
-                    <View style={styles.metricCard}>
-                        <Ionicons name="wallet" size={22} color={Colors.success} />
-                        <Text style={styles.metricValue}>{project.impactMetrics.budget}</Text>
-                        <Text style={styles.metricLabel}>Budget</Text>
-                    </View>
-                    <View style={styles.metricCard}>
-                        <Ionicons name="star" size={22} color={Colors.warning} />
-                        <Text style={styles.metricValue}>
-                            {project.rating.toFixed(1)}
-                        </Text>
-                        <Text style={styles.metricLabel}>
-                            {project.totalRatings.toLocaleString()} ratings
-                        </Text>
-                    </View>
-                    <View style={styles.metricCard}>
-                        <Ionicons name="calendar" size={22} color={Colors.accent} />
-                        <Text style={styles.metricValue}>
-                            {new Date(project.impactMetrics.expectedCompletion).toLocaleDateString(
-                                'en-IN',
-                                { month: 'short', year: 'numeric' }
-                            )}
-                        </Text>
-                        <Text style={styles.metricLabel}>Target Date</Text>
-                    </View>
-                </View>
-
-                {/* Description */}
-                <Text style={styles.sectionTitle}>About This Project</Text>
-                <Text style={styles.description}>{project.description}</Text>
-
-                {/* Timeline */}
-                <Text style={styles.sectionTitle}>Timeline</Text>
-                <View style={styles.timelineCard}>
-                    <View style={styles.timelineRow}>
-                        <View style={[styles.timelineDot, { backgroundColor: Colors.success }]} />
-                        <View style={styles.timelineContent}>
-                            <Text style={styles.timelineLabel}>Started</Text>
-                            <Text style={styles.timelineDate}>
-                                {new Date(project.impactMetrics.startDate).toLocaleDateString('en-IN', {
-                                    day: 'numeric',
-                                    month: 'long',
-                                    year: 'numeric',
-                                })}
-                            </Text>
+                {/* Site Transformation (Stitch Inspired) */}
+                <Text style={styles.sectionTitle}>Site Transformation</Text>
+                <View style={styles.transformationCard}>
+                    <View style={styles.transformationSlider}>
+                        <View style={styles.halfImage}>
+                            <Image source={{ uri: 'https://images.unsplash.com/photo-1541888946425-d81bb19480c5?q=80&w=500' }} style={styles.sideImg} />
+                            <View style={styles.imgLabelBox}><Text style={styles.imgLabel}>BEFORE</Text></View>
+                        </View>
+                        <View style={styles.transformDivider}>
+                            <View style={styles.handle}><Ionicons name="swap-horizontal" size={16} color={Colors.primary} /></View>
+                        </View>
+                        <View style={styles.halfImage}>
+                            <Image source={{ uri: project.images[0] || 'https://images.unsplash.com/photo-1590066839089-6d63430030da?q=80&w=500' }} style={styles.sideImg} />
+                            <View style={[styles.imgLabelBox, { right: 10, left: undefined }]}><Text style={styles.imgLabel}>PRESENT</Text></View>
                         </View>
                     </View>
-                    <View style={styles.timelineConnector} />
-                    <View style={styles.timelineRow}>
-                        <View
-                            style={[
-                                styles.timelineDot,
-                                {
-                                    backgroundColor:
-                                        project.status === 'completed' ? Colors.success : Colors.primary,
-                                },
-                            ]}
-                        />
-                        <View style={styles.timelineContent}>
-                            <Text style={styles.timelineLabel}>
-                                {project.status === 'completed' ? 'Completed' : 'Expected Completion'}
-                            </Text>
-                            <Text style={styles.timelineDate}>
-                                {new Date(
-                                    project.impactMetrics.expectedCompletion
-                                ).toLocaleDateString('en-IN', {
-                                    day: 'numeric',
-                                    month: 'long',
-                                    year: 'numeric',
-                                })}
-                            </Text>
+                    <Text style={styles.transformationHint}>Pinch to compare detailed progress over time.</Text>
+                </View>
+
+                {/* Project Leadership (Stitch Inspired) */}
+                <Text style={styles.sectionTitle}>Project Leadership</Text>
+                <View style={styles.leadershipCard}>
+                    <View style={styles.leaderProfile}>
+                        <View style={styles.leaderAvatar}>
+                            <Ionicons name="person" size={24} color={Colors.primary} />
+                            <View style={styles.activeDot} />
                         </View>
+                        <View style={styles.leaderInfo}>
+                            <Text style={styles.leaderName}>{project.leadership.name}</Text>
+                            <Text style={styles.leaderTitle}>{project.leadership.title}</Text>
+                        </View>
+                        <TouchableOpacity style={styles.leaderMsgBtn}>
+                            <Ionicons name="chatbubble-ellipses" size={20} color={Colors.primary} />
+                        </TouchableOpacity>
+                    </View>
+                    <View style={styles.quoteBox}>
+                        <Text style={styles.quoteText}>"Everything we build is centered around the citizen journey, ensuring safety and longevity for our community."</Text>
                     </View>
                 </View>
 
-                {/* Leadership */}
-                <Text style={styles.sectionTitle}>Leadership</Text>
-                <View style={styles.leaderCard}>
-                    <View style={styles.leaderAvatar}>
-                        <Ionicons name="person" size={24} color={Colors.primary} />
-                    </View>
-                    <View>
-                        <Text style={styles.leaderName}>{project.leadership.name}</Text>
-                        <Text style={styles.leaderTitle}>{project.leadership.title}</Text>
-                    </View>
-                </View>
-
-                {/* Feedback Button */}
-                <TouchableOpacity
-                    style={styles.feedbackBtn}
-                    onPress={() => setShowFeedback(!showFeedback)}
-                    activeOpacity={0.8}
-                >
-                    <Ionicons name="chatbubble-ellipses" size={20} color={Colors.background} />
-                    <Text style={styles.feedbackBtnText}>Share Your Feedback</Text>
-                </TouchableOpacity>
-
-                {/* Feedback Form */}
-                {showFeedback && (
-                    <View style={styles.feedbackCard}>
-                        {feedbackSent ? (
-                            <View style={styles.feedbackSuccess}>
-                                <Ionicons name="checkmark-circle" size={48} color={Colors.success} />
-                                <Text style={styles.feedbackSuccessText}>Thank you for your feedback!</Text>
+                {/* Map View */}
+                <Text style={styles.sectionTitle}>Precise Location</Text>
+                <View style={styles.mapContainer}>
+                    <MapView
+                        provider={PROVIDER_GOOGLE}
+                        style={styles.map}
+                        initialRegion={{
+                            latitude: project.location.coordinates[1],
+                            longitude: project.location.coordinates[0],
+                            latitudeDelta: 0.005,
+                            longitudeDelta: 0.005,
+                        }}
+                    >
+                        <Marker coordinate={{ latitude: project.location.coordinates[1], longitude: project.location.coordinates[0] }}>
+                            <View style={[styles.markerPin, { backgroundColor: categoryColor }]}>
+                                <Ionicons name={CATEGORY_ICONS[project.category] as any} size={14} color={Colors.white} />
                             </View>
-                        ) : (
-                            <>
-                                <Text style={styles.feedbackTitle}>Rate this project</Text>
-                                <View style={styles.starRow}>
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                        <TouchableOpacity key={star} onPress={() => setRating(star)}>
-                                            <Ionicons
-                                                name={star <= rating ? 'star' : 'star-outline'}
-                                                size={36}
-                                                color={star <= rating ? Colors.warning : Colors.textMuted}
-                                            />
-                                        </TouchableOpacity>
-                                    ))}
-                                </View>
-                                <TextInput
-                                    style={styles.commentInput}
-                                    placeholder="Add a comment (optional)"
-                                    placeholderTextColor={Colors.textMuted}
-                                    value={comment}
-                                    onChangeText={setComment}
-                                    multiline
-                                    numberOfLines={3}
-                                />
-                                <TouchableOpacity
-                                    style={[
-                                        styles.submitBtn,
-                                        rating === 0 && styles.submitBtnDisabled,
-                                    ]}
-                                    onPress={handleSubmitFeedback}
-                                    disabled={rating === 0}
-                                >
-                                    <Text style={styles.submitBtnText}>Submit</Text>
-                                </TouchableOpacity>
-                            </>
-                        )}
-                    </View>
-                )}
+                        </Marker>
+                    </MapView>
+                </View>
 
-                <View style={{ height: 100 }} />
+                {/* Feedback Section */}
+                <Text style={styles.sectionTitle}>Citizen Engagement</Text>
+                <View style={styles.feedbackCard}>
+                    {submitted ? (
+                        <View style={styles.successBox}>
+                            <Ionicons name="checkmark-circle" size={40} color={Colors.success} />
+                            <Text style={styles.successTitle}>Thank you, Citizen!</Text>
+                            <Text style={styles.successText}>Your feedback has been logged for municipal review.</Text>
+                        </View>
+                    ) : (
+                        <>
+                            <Text style={styles.feedbackPrompt}>How would you rate the progress on this site?</Text>
+                            <View style={styles.starsRow}>
+                                {[1, 2, 3, 4, 5].map((s) => (
+                                    <TouchableOpacity key={s} onPress={() => setRating(s)}>
+                                        <Ionicons name={s <= rating ? 'star' : 'star-outline'} size={32} color={Colors.accent} />
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Your comments (optional)..."
+                                multiline
+                                value={feedback}
+                                onChangeText={setFeedback}
+                            />
+                            <TouchableOpacity style={styles.submitBtn} onPress={handleFeedback}>
+                                <Text style={styles.submitBtnText}>Submit Updates</Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
+                </View>
+
+                <View style={{ height: 80 }} />
             </View>
         </ScrollView>
     );
 }
 
-const darkMapStyle = [
-    { elementType: 'geometry', stylers: [{ color: '#1d2c4d' }] },
-    { elementType: 'labels.text.fill', stylers: [{ color: '#8ec3b9' }] },
-    { elementType: 'labels.text.stroke', stylers: [{ color: '#1a3646' }] },
-    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#304a7d' }] },
-    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0e1626' }] },
-];
-
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.background,
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: Colors.background,
-    },
-    loadingText: {
-        color: Colors.textSecondary,
-        fontSize: FontSizes.md,
-    },
-    mapContainer: {
-        height: 250,
-        position: 'relative',
-    },
-    headerMap: {
-        ...StyleSheet.absoluteFillObject,
-    },
-    mapOverlay: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: 60,
-        backgroundColor: Colors.background,
-        borderTopLeftRadius: BorderRadius.xl,
-        borderTopRightRadius: BorderRadius.xl,
-    },
-    marker: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 3,
-        borderColor: Colors.white,
-    },
-    content: {
-        paddingHorizontal: Spacing.lg,
-        marginTop: -20,
-    },
-    badgeRow: {
-        flexDirection: 'row',
-        gap: Spacing.sm,
-        marginBottom: Spacing.sm,
-    },
-    categoryBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: Spacing.sm + 2,
-        paddingVertical: 4,
-        borderRadius: BorderRadius.sm,
-        gap: 4,
-    },
-    badgeText: {
-        color: Colors.white,
-        fontSize: FontSizes.xs,
-        fontWeight: '700',
-        letterSpacing: 0.5,
-    },
-    statusBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: Spacing.sm + 2,
-        paddingVertical: 4,
-        borderRadius: BorderRadius.sm,
-        gap: 6,
-    },
-    statusDot: {
-        width: 6,
-        height: 6,
-        borderRadius: 3,
-    },
-    statusBadgeText: {
-        fontSize: FontSizes.xs,
-        fontWeight: '700',
-        letterSpacing: 0.5,
-    },
-    title: {
-        fontSize: FontSizes.xxl,
-        fontWeight: '800',
-        color: Colors.text,
-        marginBottom: Spacing.md,
-        lineHeight: 34,
-    },
-    quoteCard: {
-        flexDirection: 'row',
-        backgroundColor: Colors.surface,
-        borderRadius: BorderRadius.md,
-        padding: Spacing.md,
-        marginBottom: Spacing.lg,
-        gap: Spacing.sm,
-    },
-    quoteLine: {
-        width: 3,
-        backgroundColor: Colors.primary,
-        borderRadius: 2,
-    },
-    quoteText: {
-        color: Colors.textSecondary,
-        fontSize: FontSizes.md,
-        fontStyle: 'italic',
-        lineHeight: 22,
-        flex: 1,
-    },
-    progressSection: {
-        marginBottom: Spacing.lg,
-    },
-    progressHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: Spacing.sm,
-    },
-    progressLabel: {
-        color: Colors.textSecondary,
-        fontSize: FontSizes.sm,
-        fontWeight: '600',
-    },
-    progressValue: {
-        fontSize: FontSizes.sm,
-        fontWeight: '800',
-    },
-    progressBarBg: {
-        height: 8,
-        backgroundColor: Colors.surfaceLight,
-        borderRadius: 4,
-        overflow: 'hidden',
-    },
-    progressBarFill: {
-        height: '100%',
-        borderRadius: 4,
-    },
-    sectionTitle: {
-        fontSize: FontSizes.sm,
-        fontWeight: '700',
-        color: Colors.textMuted,
-        textTransform: 'uppercase',
-        letterSpacing: 1,
-        marginBottom: Spacing.sm,
-        marginTop: Spacing.sm,
-    },
-    metricsGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: Spacing.sm,
-        marginBottom: Spacing.md,
-    },
-    metricCard: {
-        width: (width - Spacing.lg * 2 - Spacing.sm) / 2,
-        backgroundColor: Colors.surface,
-        borderRadius: BorderRadius.md,
-        padding: Spacing.md,
-        alignItems: 'center',
-        gap: 6,
-        ...Shadows.small,
-    },
-    metricValue: {
-        color: Colors.text,
-        fontSize: FontSizes.lg,
-        fontWeight: '800',
-    },
-    metricLabel: {
-        color: Colors.textSecondary,
-        fontSize: FontSizes.xs,
-    },
-    description: {
-        color: Colors.textSecondary,
-        fontSize: FontSizes.md,
-        lineHeight: 24,
-        marginBottom: Spacing.md,
-    },
-    timelineCard: {
-        backgroundColor: Colors.surface,
-        borderRadius: BorderRadius.md,
-        padding: Spacing.md,
-        marginBottom: Spacing.md,
-    },
-    timelineRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: Spacing.sm,
-    },
-    timelineDot: {
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-    },
-    timelineConnector: {
-        width: 2,
-        height: 24,
-        backgroundColor: Colors.border,
-        marginLeft: 5,
-    },
-    timelineContent: {},
-    timelineLabel: {
-        color: Colors.textMuted,
-        fontSize: FontSizes.xs,
-        textTransform: 'uppercase',
-        fontWeight: '600',
-        letterSpacing: 0.5,
-    },
-    timelineDate: {
-        color: Colors.text,
-        fontSize: FontSizes.md,
-        fontWeight: '600',
-    },
-    leaderCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: Colors.surface,
-        borderRadius: BorderRadius.md,
-        padding: Spacing.md,
-        gap: Spacing.sm,
-        marginBottom: Spacing.lg,
-    },
-    leaderAvatar: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: `${Colors.primary}15`,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    leaderName: {
-        color: Colors.text,
-        fontSize: FontSizes.md,
-        fontWeight: '700',
-    },
-    leaderTitle: {
-        color: Colors.textSecondary,
-        fontSize: FontSizes.sm,
-        marginTop: 2,
-    },
-    feedbackBtn: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: Colors.primary,
-        borderRadius: BorderRadius.lg,
-        paddingVertical: Spacing.md,
-        gap: Spacing.sm,
-        ...Shadows.medium,
-    },
-    feedbackBtnText: {
-        color: Colors.background,
-        fontSize: FontSizes.md,
-        fontWeight: '700',
-    },
-    feedbackCard: {
-        backgroundColor: Colors.surface,
-        borderRadius: BorderRadius.lg,
-        padding: Spacing.lg,
-        marginTop: Spacing.md,
-        ...Shadows.small,
-    },
-    feedbackTitle: {
-        color: Colors.text,
-        fontSize: FontSizes.lg,
-        fontWeight: '700',
-        textAlign: 'center',
-        marginBottom: Spacing.md,
-    },
-    starRow: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        gap: Spacing.sm,
-        marginBottom: Spacing.md,
-    },
-    commentInput: {
-        backgroundColor: Colors.surfaceLight,
-        borderRadius: BorderRadius.md,
-        padding: Spacing.md,
-        color: Colors.text,
-        fontSize: FontSizes.md,
-        minHeight: 80,
-        textAlignVertical: 'top',
-        marginBottom: Spacing.md,
-    },
-    submitBtn: {
-        backgroundColor: Colors.primary,
-        borderRadius: BorderRadius.md,
-        paddingVertical: Spacing.sm + 4,
-        alignItems: 'center',
-    },
-    submitBtnDisabled: {
-        opacity: 0.4,
-    },
-    submitBtnText: {
-        color: Colors.background,
-        fontSize: FontSizes.md,
-        fontWeight: '700',
-    },
-    feedbackSuccess: {
-        alignItems: 'center',
-        paddingVertical: Spacing.lg,
-        gap: Spacing.sm,
-    },
-    feedbackSuccessText: {
-        color: Colors.success,
-        fontSize: FontSizes.lg,
-        fontWeight: '600',
-    },
+    container: { flex: 1, backgroundColor: Colors.background },
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.background },
+    loadingText: { marginTop: 15, color: Colors.textSecondary, fontWeight: '700' },
+    errorText: { fontSize: 18, color: Colors.error, fontWeight: '800' },
+    heroContainer: { height: 400, position: 'relative' },
+    heroImage: { width: '100%', height: '100%' },
+    heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.3)', padding: 25, justifyContent: 'space-between' },
+    closeBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', alignSelf: 'flex-start', marginTop: 30 },
+    heroTitles: { paddingBottom: 10 },
+    categoryBadge: { alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, marginBottom: 12 },
+    categoryText: { color: Colors.white, fontSize: 10, fontWeight: '900', letterSpacing: 1 },
+    heroTitle: { fontSize: 32, fontWeight: '900', color: Colors.white, marginBottom: 8 },
+    heroMeta: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    heroLocation: { color: 'rgba(255,255,255,0.7)', fontSize: 13, fontWeight: '600' },
+    content: { padding: 25, marginTop: -30, backgroundColor: Colors.background, borderTopLeftRadius: 35, borderTopRightRadius: 35 },
+    statsGrid: { flexDirection: 'row', gap: 12, marginBottom: 30 },
+    statCard: { flex: 1, backgroundColor: Colors.surface, borderRadius: 20, padding: 15, alignItems: 'center', ...Shadows.small },
+    statVal: { fontSize: 18, fontWeight: '900', color: Colors.primary, marginBottom: 4 },
+    statLabel: { fontSize: 10, color: Colors.textSecondary, fontWeight: '700', textTransform: 'uppercase' },
+    aiCard: { backgroundColor: Colors.primaryLight, padding: 20, borderRadius: 20, borderLeftWidth: 5, marginBottom: 35 },
+    aiHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
+    aiLabel: { fontSize: 10, fontWeight: '900', color: Colors.textSecondary, letterSpacing: 1 },
+    aiText: { fontSize: 16, fontStyle: 'italic', fontWeight: '700', color: Colors.primary, lineHeight: 24, marginBottom: 10 },
+    aiTone: { fontSize: 9, color: Colors.textMuted, fontWeight: '900' },
+    sectionTitle: { fontSize: 18, fontWeight: '900', color: Colors.text, marginBottom: 15, marginTop: 10 },
+    transformationCard: { backgroundColor: Colors.white, borderRadius: 20, padding: 15, marginBottom: 30, ...Shadows.small },
+    transformationSlider: { height: 180, flexDirection: 'row', borderRadius: 15, overflow: 'hidden' },
+    halfImage: { flex: 1, position: 'relative' },
+    sideImg: { width: '100%', height: '100%' },
+    imgLabelBox: { position: 'absolute', bottom: 10, left: 10, backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+    imgLabel: { color: Colors.white, fontSize: 8, fontWeight: '900' },
+    transformDivider: { width: 2, height: '100%', backgroundColor: Colors.white, zIndex: 10, justifyContent: 'center', alignItems: 'center' },
+    handle: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.white, position: 'absolute', justifyContent: 'center', alignItems: 'center', ...Shadows.small },
+    transformationHint: { color: Colors.textMuted, fontSize: 11, textAlign: 'center', marginTop: 12, fontStyle: 'italic' },
+    leadershipCard: { backgroundColor: Colors.white, borderRadius: 20, padding: 18, marginBottom: 30, ...Shadows.small },
+    leaderProfile: { flexDirection: 'row', alignItems: 'center', gap: 15, marginBottom: 15 },
+    leaderAvatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: Colors.primaryLight, justifyContent: 'center', alignItems: 'center', position: 'relative' },
+    activeDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.success, position: 'absolute', bottom: 2, right: 2, borderWidth: 2, borderColor: Colors.white },
+    leaderInfo: { flex: 1 },
+    leaderName: { fontSize: 16, fontWeight: '800', color: Colors.text },
+    leaderTitle: { fontSize: 12, color: Colors.textSecondary },
+    leaderMsgBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primaryLight, justifyContent: 'center', alignItems: 'center' },
+    quoteBox: { backgroundColor: Colors.background, padding: 15, borderRadius: 12 },
+    quoteText: { fontSize: 13, fontStyle: 'italic', lineHeight: 20, color: Colors.textSecondary },
+    mapContainer: { height: 200, borderRadius: 20, overflow: 'hidden', marginBottom: 35, ...Shadows.small },
+    map: { width: '100%', height: '100%' },
+    markerPin: { width: 28, height: 28, borderRadius: 14, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: Colors.white },
+    feedbackCard: { backgroundColor: Colors.white, borderRadius: 20, padding: 25, ...Shadows.medium },
+    feedbackPrompt: { fontSize: 15, fontWeight: '800', color: Colors.text, textAlign: 'center', marginBottom: 15 },
+    starsRow: { flexDirection: 'row', justifyContent: 'center', gap: 10, marginBottom: 20 },
+    input: { backgroundColor: Colors.background, borderRadius: 15, padding: 15, minHeight: 80, textAlignVertical: 'top', color: Colors.text, marginBottom: 20 },
+    submitBtn: { backgroundColor: Colors.primary, height: 55, borderRadius: 30, justifyContent: 'center', alignItems: 'center', ...Shadows.glow(Colors.primary) },
+    submitBtnText: { color: Colors.white, fontSize: 16, fontWeight: '800' },
+    successBox: { alignItems: 'center', paddingVertical: 10 },
+    successTitle: { fontSize: 20, fontWeight: '900', color: Colors.success, marginTop: 15, marginBottom: 8 },
+    successText: { fontSize: 14, color: Colors.textSecondary, textAlign: 'center', lineHeight: 22 },
+    backBtn: { marginTop: 10 }
 });

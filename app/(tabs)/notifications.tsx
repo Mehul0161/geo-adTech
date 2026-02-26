@@ -1,5 +1,5 @@
 // ========================================
-// GeoAdTech — Notifications Screen
+// GeoAdTech — Notifications Screen (Stitch Style)
 // ========================================
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -13,8 +13,9 @@ import {
     View,
 } from 'react-native';
 
-import { CATEGORY_ICONS, MOCK_NOTIFICATIONS } from '@/constants/mockData';
-import { BorderRadius, Colors, FontSizes, Shadows, Spacing } from '@/constants/theme';
+import { CATEGORY_ICONS } from '@/constants/mockData';
+import { Colors, Shadows } from '@/constants/theme';
+import { getNotificationHistory } from '@/services/api';
 import { NotificationItem } from '@/types';
 
 export default function NotificationsScreen() {
@@ -22,251 +23,111 @@ export default function NotificationsScreen() {
     const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
-        setNotifications(MOCK_NOTIFICATIONS);
+        fetchNotifications();
     }, []);
+
+    const fetchNotifications = async () => {
+        try {
+            const data = await getNotificationHistory('user_123');
+            setNotifications(data);
+        } catch (error) {
+            console.error('Failed to fetch notifications:', error);
+        }
+    };
 
     const onRefresh = async () => {
         setRefreshing(true);
-        // Simulate API call
-        await new Promise((r) => setTimeout(r, 800));
-        setNotifications(MOCK_NOTIFICATIONS);
+        await fetchNotifications();
         setRefreshing(false);
     };
 
-    const markAsRead = (id: string) => {
+    const markAsRead = (id: string | number) => {
         setNotifications((prev) =>
-            prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+            prev.map((n) => (n.id === id || (n as any)._id === id ? { ...n, read: true } : n))
         );
     };
 
     const formatTime = (timestamp: string) => {
         const date = new Date(timestamp);
-        const now = new Date();
-        const diffMs = now.getTime() - date.getTime();
-        const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-        const diffDays = Math.floor(diffHrs / 24);
-
-        if (diffHrs < 1) return 'Just now';
-        if (diffHrs < 24) return `${diffHrs}h ago`;
-        if (diffDays < 7) return `${diffDays}d ago`;
-        return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+        const hrs = date.getHours();
+        const mins = date.getMinutes().toString().padStart(2, '0');
+        return `${hrs}:${mins}`;
     };
 
-    const unreadCount = notifications.filter((n) => !n.read).length;
-
     const renderNotification = ({ item }: { item: NotificationItem }) => {
-        const categoryColor = Colors.categories[item.category] || Colors.textMuted;
+        const categoryColor = Colors.categories[item.category] || Colors.textSecondary;
+        const itemId = item.id || (item as any)._id;
 
         return (
             <TouchableOpacity
-                style={[
-                    styles.notifCard,
-                    !item.read && styles.unreadCard,
-                ]}
+                style={[styles.card, !item.read && styles.unreadCard]}
                 onPress={() => {
-                    markAsRead(item.id);
+                    markAsRead(itemId);
                     router.push(`/project/${item.projectId}`);
                 }}
                 activeOpacity={0.7}
             >
-                <View style={[styles.iconContainer, { backgroundColor: `${categoryColor}20` }]}>
-                    <Ionicons
-                        name={CATEGORY_ICONS[item.category] as any}
-                        size={22}
-                        color={categoryColor}
-                    />
+                <View style={[styles.iconBox, { backgroundColor: `${categoryColor}15` }]}>
+                    <Ionicons name={CATEGORY_ICONS[item.category] as any} size={20} color={categoryColor} />
                 </View>
-                <View style={styles.notifContent}>
-                    <View style={styles.notifHeader}>
-                        <Text style={styles.notifTitle} numberOfLines={1}>
-                            {item.title}
-                        </Text>
-                        {!item.read && <View style={styles.unreadDot} />}
+                <View style={styles.content}>
+                    <View style={styles.headerRow}>
+                        <Text style={styles.time}>{formatTime(item.timestamp)}</Text>
+                        {!item.read && <View style={styles.dot} />}
                     </View>
-                    <Text style={styles.notifBody} numberOfLines={2}>
-                        {item.body}
-                    </Text>
-                    <View style={styles.notifMeta}>
-                        <Text style={styles.notifTime}>{formatTime(item.timestamp)}</Text>
-                        <Text style={styles.notifProject}>
-                            {item.projectName.length > 25
-                                ? item.projectName.substring(0, 25) + '...'
-                                : item.projectName}
-                        </Text>
+                    <Text style={styles.title} numberOfLines={1}>{item.title}</Text>
+                    <Text style={styles.body} numberOfLines={2}>{item.body}</Text>
+                    <View style={styles.tag}>
+                        <Ionicons name="business" size={10} color={Colors.primary} />
+                        <Text style={styles.tagName}>{item.projectName}</Text>
                     </View>
                 </View>
             </TouchableOpacity>
         );
     };
 
-    const renderEmptyState = () => (
-        <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconContainer}>
-                <Ionicons name="notifications-off-outline" size={64} color={Colors.textMuted} />
-            </View>
-            <Text style={styles.emptyTitle}>No Notifications Yet</Text>
-            <Text style={styles.emptySubtitle}>
-                When you enter a geo-fenced area near a development project, you'll receive alerts here.
-            </Text>
-        </View>
-    );
-
     return (
         <View style={styles.container}>
-            {/* Header */}
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>Alerts</Text>
-                {unreadCount > 0 && (
-                    <View style={styles.badge}>
-                        <Text style={styles.badgeText}>{unreadCount}</Text>
-                    </View>
-                )}
+                <Text style={styles.headerSubtitle}>Civic Alerts</Text>
+                <Text style={styles.headerTitle}>History</Text>
             </View>
 
-            {/* Notification List */}
             <FlatList
                 data={notifications}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item.id || (item as any)._id}
                 renderItem={renderNotification}
-                contentContainerStyle={styles.listContent}
-                ListEmptyComponent={renderEmptyState}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={onRefresh}
-                        tintColor={Colors.primary}
-                        colors={[Colors.primary]}
-                    />
-                }
-                ItemSeparatorComponent={() => <View style={styles.separator} />}
+                contentContainerStyle={styles.list}
+                showsVerticalScrollIndicator={false}
+                ListEmptyComponent={() => (
+                    <View style={styles.empty}>
+                        <Ionicons name="notifications-off-outline" size={48} color={Colors.border} />
+                        <Text style={styles.emptyText}>No alerts yet. Travel to geo-fenced zones to see updates.</Text>
+                    </View>
+                )}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />}
             />
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.background,
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: Spacing.lg,
-        paddingTop: 60,
-        paddingBottom: Spacing.md,
-        gap: Spacing.sm,
-    },
-    headerTitle: {
-        fontSize: FontSizes.xxl,
-        fontWeight: '800',
-        color: Colors.text,
-    },
-    badge: {
-        backgroundColor: Colors.error,
-        borderRadius: BorderRadius.full,
-        minWidth: 22,
-        height: 22,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 6,
-    },
-    badgeText: {
-        color: Colors.white,
-        fontSize: FontSizes.xs,
-        fontWeight: '700',
-    },
-    listContent: {
-        paddingHorizontal: Spacing.md,
-        paddingBottom: 100,
-    },
-    notifCard: {
-        flexDirection: 'row',
-        backgroundColor: Colors.surface,
-        borderRadius: BorderRadius.md,
-        padding: Spacing.md,
-        gap: Spacing.sm,
-        ...Shadows.small,
-    },
-    unreadCard: {
-        borderLeftWidth: 3,
-        borderLeftColor: Colors.primary,
-    },
-    iconContainer: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    notifContent: {
-        flex: 1,
-    },
-    notifHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: Spacing.sm,
-        marginBottom: 4,
-    },
-    notifTitle: {
-        color: Colors.text,
-        fontSize: FontSizes.md,
-        fontWeight: '700',
-        flex: 1,
-    },
-    unreadDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: Colors.primary,
-    },
-    notifBody: {
-        color: Colors.textSecondary,
-        fontSize: FontSizes.sm,
-        lineHeight: 19,
-        marginBottom: Spacing.xs,
-    },
-    notifMeta: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    notifTime: {
-        color: Colors.textMuted,
-        fontSize: FontSizes.xs,
-    },
-    notifProject: {
-        color: Colors.primary,
-        fontSize: FontSizes.xs,
-        fontWeight: '600',
-    },
-    separator: {
-        height: Spacing.sm,
-    },
-    emptyContainer: {
-        alignItems: 'center',
-        paddingTop: 120,
-        paddingHorizontal: Spacing.xl,
-    },
-    emptyIconContainer: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        backgroundColor: Colors.surface,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: Spacing.lg,
-    },
-    emptyTitle: {
-        fontSize: FontSizes.xl,
-        fontWeight: '700',
-        color: Colors.text,
-        marginBottom: Spacing.sm,
-    },
-    emptySubtitle: {
-        fontSize: FontSizes.md,
-        color: Colors.textSecondary,
-        textAlign: 'center',
-        lineHeight: 22,
-    },
+    container: { flex: 1, backgroundColor: Colors.background },
+    header: { paddingTop: 70, paddingHorizontal: 25, paddingBottom: 25, backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.border },
+    headerSubtitle: { fontSize: 10, color: Colors.primary, fontWeight: '800', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 },
+    headerTitle: { fontSize: 26, fontWeight: '900', color: Colors.text },
+    list: { padding: 20, paddingBottom: 100 },
+    card: { flexDirection: 'row', backgroundColor: Colors.white, borderRadius: 20, padding: 20, marginBottom: 15, gap: 15, ...Shadows.small },
+    unreadCard: { borderLeftWidth: 4, borderLeftColor: Colors.primary },
+    iconBox: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+    content: { flex: 1 },
+    headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+    time: { fontSize: 11, color: Colors.textMuted, fontWeight: '700' },
+    dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.primary },
+    title: { fontSize: 16, fontWeight: '800', color: Colors.text, marginBottom: 4 },
+    body: { fontSize: 13, color: Colors.textSecondary, lineHeight: 18, marginBottom: 12 },
+    tag: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.primaryLight, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, gap: 6 },
+    tagName: { fontSize: 10, fontWeight: '800', color: Colors.primary },
+    empty: { alignItems: 'center', marginTop: 100, paddingHorizontal: 40 },
+    emptyText: { marginTop: 20, textAlign: 'center', color: Colors.textMuted, fontSize: 14, lineHeight: 22 }
 });
