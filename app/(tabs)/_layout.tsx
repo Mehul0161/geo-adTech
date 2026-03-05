@@ -1,5 +1,5 @@
 // ========================================
-// GeoAdTech — Tab Layout (Stitch Inspired)
+// GeoAdTech — Tab Layout (Final)
 // ========================================
 import { Colors } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -36,18 +36,19 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Central Plus Button (FAB Style) */}
+      {/* Central FAB — Report Issue */}
       <Tabs.Screen
         name="create"
         options={{
-          title: '',
-          tabBarIcon: ({ focused }) => (
+          title: 'Report',
+          tabBarIcon: () => (
             <View style={styles.fabOuter}>
               <View style={styles.fabInner}>
-                <Ionicons name="add" size={32} color={Colors.white} />
+                <Ionicons name="add" size={28} color={Colors.white} />
               </View>
             </View>
           ),
+          tabBarLabel: () => null,
         }}
       />
 
@@ -56,11 +57,7 @@ export default function TabLayout() {
         options={{
           title: 'Projects',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'folder' : 'folder-outline'}
-              size={24}
-              color={color}
-            />
+            <Ionicons name={focused ? 'folder' : 'folder-outline'} size={24} color={color} />
           ),
         }}
       />
@@ -69,20 +66,16 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'person' : 'person-outline'}
-              size={24}
-              color={color}
-            />
+            <Ionicons name={focused ? 'person' : 'person-outline'} size={24} color={color} />
           ),
         }}
       />
 
-      {/* Hidden Context Screens */}
+      {/* Hidden Screens */}
       <Tabs.Screen name="discuss" options={{ href: null }} />
       <Tabs.Screen name="notifications" options={{ href: null }} />
-      <Tabs.Screen name="home" options={{ href: null }} />
     </Tabs>
+
   );
 }
 
@@ -91,33 +84,33 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderTopColor: '#E2E8F0',
     borderTopWidth: 1,
-    height: Platform.OS === 'ios' ? 88 : 70,
-    paddingBottom: Platform.OS === 'ios' ? 30 : 10,
-    paddingTop: 10,
-    elevation: 10,
+    height: Platform.OS === 'ios' ? 88 : 72,
+    paddingBottom: Platform.OS === 'ios' ? 28 : 12,
+    paddingTop: 8,
+    elevation: 15,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
   },
   tabLabel: {
     fontSize: 10,
-    fontWeight: '800',
-    marginTop: -5,
+    fontWeight: '700',
+    marginTop: -4,
   },
   fabOuter: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
     backgroundColor: Colors.white,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: -30,
+    marginTop: -22,
     shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 10,
   },
   fabInner: {
     width: 50,

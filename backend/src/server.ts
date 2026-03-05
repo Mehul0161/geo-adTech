@@ -2,7 +2,9 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
+import morgan from 'morgan';
 import connectDB from './config/db.js';
+import { getMe, incrementStat, login, register, updateProfile } from './controllers/authController.js';
 import { handleLocationUpdate } from './controllers/locationController.js';
 import {
     createProject,
@@ -13,13 +15,15 @@ import {
     updateProject
 } from './controllers/projectController.js';
 import Feedback from './models/Feedback.js';
+import IssueReport from './models/IssueReport.js';
 import Notification from './models/Notification.js';
 import Project from './models/Project.js';
+
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5000;
 
 // Connect to Database
 connectDB();
@@ -27,11 +31,29 @@ connectDB();
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
+app.use(morgan('dev')); // Standard request logging
+
+// Custom Request Logger for bodies
+app.use((req, res, next) => {
+    if (['POST', 'PATCH', 'PUT'].includes(req.method)) {
+        console.log(`📦 Path: ${req.path} | Payload:`, JSON.stringify(req.body, null, 2));
+    }
+    next();
+});
 
 // Base Route
 app.get('/', (req, res) => {
     res.send('🏠 GeoAdTech API Status: Running Phase II');
 });
+
+/**
+ * Auth Routes
+ */
+app.post('/api/auth/register', register);
+app.post('/api/auth/login', login);
+app.get('/api/auth/me', getMe);
+app.patch('/api/auth/profile', updateProfile);
+app.patch('/api/auth/stats', incrementStat);
 
 /**
  * Project Routes
@@ -101,6 +123,51 @@ app.get('/api/stats', async (req, res) => {
 });
 
 /**
+ * Citizen Issue Reports
+ */
+app.post('/api/reports', async (req, res) => {
+    try {
+        const report = new IssueReport(req.body);
+        await report.save();
+        res.status(201).json({ success: true, data: report });
+    } catch (err: any) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+/**
+ * Global Activity Feed (Combined Reports + Feedback)
+ */
+app.get('/api/activity', async (req, res) => {
+    try {
+        const reports = await IssueReport.find().sort({ createdAt: -1 }).limit(5);
+        const feedbacks = await Feedback.find().sort({ timestamp: -1 }).limit(5).populate('projectName');
+
+        // Map them to a common format
+        const activity = [
+            ...reports.map(r => ({
+                id: r._id,
+                type: 'report',
+                title: r.issueType,
+                user: 'Citizen',
+                timestamp: r.createdAt,
+            })),
+            ...feedbacks.map(f => ({
+                id: f._id,
+                type: 'feedback',
+                title: `Feedback on ${(f as any).projectName?.name || 'Municipal Project'}`,
+                user: 'Civic Supporter',
+                timestamp: f.timestamp,
+            }))
+        ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+        res.json({ success: true, data: activity });
+    } catch (err: any) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
  * Feedback Routes
  */
 app.post('/api/feedback', async (req, res) => {
@@ -126,6 +193,6 @@ app.get('/api/feedback', async (req, res) => {
 });
 
 // Start Server
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
 });

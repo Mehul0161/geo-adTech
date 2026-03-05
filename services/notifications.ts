@@ -43,8 +43,13 @@ export async function registerForPushNotifications(): Promise<string | null> {
         });
     }
 
-    const tokenData = await Notifications.getExpoPushTokenAsync();
-    return tokenData.data;
+    try {
+        const tokenData = await Notifications.getExpoPushTokenAsync();
+        return tokenData.data;
+    } catch (e) {
+        console.warn('Notification Token Error: Ensure eas.json or app.json has a projectId if not in Expo Go.', e);
+        return null;
+    }
 }
 
 export async function sendLocalNotification(
